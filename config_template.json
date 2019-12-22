@@ -1,0 +1,4 @@
+{
+  "tg_token": "TELEGRAM_TOKEN",
+  "admins": ["@ADMIN_NAME"]
+}
