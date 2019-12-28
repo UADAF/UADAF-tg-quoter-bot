@@ -124,16 +124,7 @@ fun CommandBuilder.quoteCommand() {
         }
         val data = ChatDataStorage.getData(msg.chat)
         val r = when {
-            repo.value != null -> {
-                if (msg.from?.username !in Config.admins) {
-                    bot.answerOn(
-                        msg,
-                        "Только админ может использовать нестандартный репозиторий репозиторий (я защищаю вашу психику)."
-                    )
-                    return@command
-                }
-                repo.value!!
-            }
+            repo.value != null -> repo.value!!
             data.boundRepo.isEmpty() -> quoter.defaultRepo
             else -> data.boundRepo
         }
