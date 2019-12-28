@@ -5,6 +5,13 @@ language: java
 jdk:
   - oraclejdk8
 
+deploy:
+  porvider: releases
+  api_key: $API_KEY
+  file: quoter.jar
+  skip_cleanup: true
+  draft: false
+
 install: true
 
 before_install:
@@ -18,7 +25,7 @@ before_cache:
     - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 
 after_script:
-  - find .
+  - mv `find build/libs -name "*.jar" | head -n 1` quoter.jar
 
 cache:
   bundler: true
