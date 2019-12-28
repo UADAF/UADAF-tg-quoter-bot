@@ -18,14 +18,12 @@ before_install:
   - chmod +x gradlew
 
 script:
-  ./gradlew shadowJar
+  - ./gradlew shadowJar
+  - mv `find build/libs -name "*.jar" | head -n 1` quoter.jar
 
 before_cache:
     - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
     - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-
-after_script:
-  - mv `find build/libs -name "*.jar" | head -n 1` quoter.jar
 
 cache:
   bundler: true
