@@ -13,11 +13,14 @@ import rocks.waffle.telekt.contrib.filters.CommandFilter
 import rocks.waffle.telekt.dispatcher.Dispatcher
 import rocks.waffle.telekt.dispatcher.HandlerScope
 import rocks.waffle.telekt.types.Message
+import rocks.waffle.telekt.types.replymarkup.KeyboardButton
+import rocks.waffle.telekt.util.ReplyKeyboardMarkup
 import rocks.waffle.telekt.util.answerOn
 import rocks.waffle.telekt.util.handlerregistration.HandlerDSL
 import rocks.waffle.telekt.util.handlerregistration.dispatch
 import rocks.waffle.telekt.util.handlerregistration.handle
 import rocks.waffle.telekt.util.handlerregistration.messages
+import rocks.waffle.telekt.util.replyTo
 
 val json = Json(JsonConfiguration.Stable);
 
@@ -40,9 +43,13 @@ suspend fun main(args: Array<String>) {
     dp.dispatch {
         messages {
             handle(CommandFilter("start")) { msg ->
-                bot.answerOn(msg, "Can you hear me?")
+                val markup =  ReplyKeyboardMarkup() {
+                    add(KeyboardButton("/quote"))
+                }
+                quoterbot.bot.replyTo(msg,"Can you hear me?", replyMarkup=markup)
             }
             initCommands()
+
         }
     }
     dp.poll()
