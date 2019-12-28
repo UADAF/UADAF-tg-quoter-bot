@@ -7,8 +7,7 @@ jdk:
 
 deploy:
   porvider: releases
-  user: $GHU
-  password: $GHP
+  api_key: $GHA
   file: quoter.jar
   skip_cleanup: true
   draft: false
