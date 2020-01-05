@@ -43,13 +43,12 @@ suspend fun main(args: Array<String>) {
     dp.dispatch {
         messages {
             handle(CommandFilter("start")) { msg ->
-                val markup =  ReplyKeyboardMarkup() {
+                val markup = ReplyKeyboardMarkup() {
                     add(KeyboardButton("/quote"))
                 }
-                quoterbot.bot.replyTo(msg,"Can you hear me?", replyMarkup=markup)
+                quoterbot.bot.replyTo(msg, "Can you hear me?", replyMarkup = markup)
             }
             initCommands()
-
         }
     }
     dp.poll()
@@ -87,6 +86,7 @@ fun CommandBuilder.command(name: String, parser: ArgParser? = null, block: suspe
 fun CommandBuilder.initCommands() {
     bindCommand()
     quoteCommand()
+    helpCommand()
 }
 
 fun CommandBuilder.bindCommand() {
@@ -162,15 +162,30 @@ fun CommandBuilder.quoteCommand() {
                 .append(":\n")
                 .append(quote.content)
                 .append("\n\n")
-            if(reply.length + quoteRep.length > 4096) {
+            if (reply.length + quoteRep.length > 4096) {
                 bot.answerOn(msg, reply.toString())
                 reply = StringBuilder()
             }
             reply.append(quoteRep)
         }
-        if(reply.isNotEmpty()) {
+        if (reply.isNotEmpty()) {
             bot.answerOn(msg, reply.toString())
         }
+    }
+}
+
+fun CommandBuilder.helpCommand() {
+    val parser = ArgParser()
+    command("help", parser) { msg ->
+        bot.answerOn(
+            msg,
+            "Привет ^^ \n " +
+                    "Спасибо, что используете нашего бота! \n " +
+                    "Он пока ещё маленький, и поэтому знает не так много команд. Но со временем (если оно появится у разработчиков..), бот будет расти и развиваться! \n" +
+                    "Так вот, список команд: \n" +
+                    "/quote [id] - Это команда, которая выдаст нам цитату. /id - это число, однозначно задающее цитату/ \n" +
+                    "/bind *осторожно, только для админов!!* - команда для переключения репозитория."
+        )
     }
 }
 
