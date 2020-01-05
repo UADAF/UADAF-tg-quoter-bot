@@ -49,7 +49,6 @@ suspend fun main(args: Array<String>) {
                 quoterbot.bot.replyTo(msg,"Can you hear me?", replyMarkup=markup)
             }
             initCommands()
-
         }
     }
     dp.poll()
@@ -87,6 +86,7 @@ fun CommandBuilder.command(name: String, parser: ArgParser? = null, block: suspe
 fun CommandBuilder.initCommands() {
     bindCommand()
     quoteCommand()
+    helpCommand()
 }
 
 fun CommandBuilder.bindCommand() {
@@ -173,6 +173,8 @@ fun CommandBuilder.quoteCommand() {
         }
     }
 }
+
+fun CommandBuilder.helpCommand() {}
 
 fun extractCount(a: List<String>): Pair<Int, List<String>> {
     val countPos = a.indexOf("*")
