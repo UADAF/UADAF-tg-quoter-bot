@@ -175,6 +175,7 @@ fun CommandBuilder.quoteCommand() {
 }
 
 fun CommandBuilder.helpCommand() {
+    val parser = ArgParser()
     command("quote", parser) { msg ->
         bot.answerOn(
             msg,
