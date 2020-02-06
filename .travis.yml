@@ -6,7 +6,7 @@ jdk:
   - oraclejdk8
 
 deploy:
-  porvider: releases
+  provider: releases
   api_key: $GHA
   file: quoter.jar
   skip_cleanup: true
