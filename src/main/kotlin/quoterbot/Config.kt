@@ -8,11 +8,13 @@ import java.io.File
 object Config {
 
     val tgToken: String
+    val quoterKey: String?
     val admins: List<String>
     init {
         check(configFilename != "") { "Config was accessed before config filename was set" }
         val cfg = json.parseJson(File(configFilename).readText()).jsonObject
         tgToken = checkNotNull(cfg["tg_token"]?.content) { "Invalid config: tg_token not found" }
+        quoterKey = cfg.getPrimitiveOrNull("quoter_key")?.content
         val adminsList = checkNotNull(cfg.getArrayOrNull("admins")) { "Invalid config: unable to read admins" }
         admins = adminsList.map {
             check(it is JsonPrimitive) { "Invalid config: unable to read admins" }
