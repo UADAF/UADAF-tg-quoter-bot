@@ -5,6 +5,7 @@ import argparser.spec.ArgResult
 import argparser.tokenize
 import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.apache.Apache
+import io.ktor.content.TextContent
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
@@ -121,7 +122,7 @@ fun CommandBuilder.bindCommand() {
         if (ChatDataStorage.save()) {
             bot.answerOn(msg, "Канал привязан к репозиторию '${repo}'.")
         } else {
-            bot.answerOn(msg, "Что-то пошло не так. Пните админа.")
+            bot.answerOn(msg, "Что-то пошло не так при сохранении данных... Пните админа.")
             data.boundRepo = oldRepo
         }
     }
@@ -238,7 +239,7 @@ fun CommandBuilder.addCommand() {
                     )
                     return@command
                 }
-                bot.answerOn(msg, "Добавить цитату? (id подтверждения: $id)\n\n $qauthor:\n $quote",
+                bot.answerOn(msg, "Добавить цитату в репозиторий '$r'? (id подтверждения: $id)\n\n $qauthor:\n $quote",
                     replyMarkup = ReplyKeyboardMarkup {
                         +KeyboardButton("/confirm $id")
                         +KeyboardButton("/deny $id")
@@ -248,10 +249,10 @@ fun CommandBuilder.addCommand() {
             }
         }
     }
-    fun confirmCmd() {
+    fun handleQuoteCmd(name: String, handler: suspend (Message, TempQuoteStorage.TempQuote) -> Unit) {
         val parser = ArgParser()
         val leftover by parser.leftoverDelegate()
-        command("confirm", parser) { msg ->
+        command(name, parser) { msg ->
             if (msg.from?.username !in Config.admins) {
                 bot.answerOn(msg, "Только админ добавлять цитаты.")
                 return@command
@@ -268,60 +269,39 @@ fun CommandBuilder.addCommand() {
                     bot.answerOn(msg, "Не могу найти такую цитатку. Возможно, неправильный id")
                     return@command
                 }
-                val res = quoter.add(
-                    q.adder,
-                    q.authors,
-                    q.quote,
-                    q.dt,
-                    emptyList(),
-                    q.repo
-                )
-                if(res.response.status != HttpStatusCode.OK) {
-                    bot.answerOn(msg, "Что-то пошло не так")
-                    println(res.response.status) //TODO replace with normal log
-                    println(res.request.url)
-                    println(res.request.content)
-                } else {
-                    bot.answerOn(msg, "Добавлено!")
-                }
+                handler(msg, q)
             } catch (e: Throwable) {
-                bot.answerOn(msg, "Что-то пошло не так.")
-                println("Couldn't add quote") //TODO replace with normal log
-                e.printStackTrace()
-            }
-        }
-    }
-    fun denyCmd() {
-        val parser = ArgParser()
-        val leftover by parser.leftoverDelegate()
-        command("confirm", parser) { msg ->
-            if (msg.from?.username !in Config.admins) {
-                bot.answerOn(msg, "Только админ добавлять цитаты.")
-                return@command
-            }
-            try {
-                if(leftover.isEmpty()) {
-                    bot.answerOn(msg, "Эту команду можно использовать только с id подтверждения")
-                    return@command
-                }
-                val id = leftover[0].toInt()
-                val q = TempQuoteStorage.takeQuote(id)
-                if (q == null) {
-                    println("Couldn't find quote in buffer...") //TODO replace with normal log
-                    bot.answerOn(msg, "Не могу найти такую цитатку. Возможно, неправильный id")
-                    return@command
-                }
-                bot.answerOn(msg, "Отменено.")
-            } catch (e: Throwable) {
-                bot.answerOn(msg, "Что-то пошло не так.")
+                bot.answerOn(msg, "Что-то пошло не так: ${e.message}")
                 println("Couldn't add quote") //TODO replace with normal log
                 e.printStackTrace()
             }
         }
     }
     addCmd()
-    confirmCmd()
-    denyCmd()
+    handleQuoteCmd("confirm") { msg, q ->
+        val res = quoter.add(
+            q.adder,
+            q.authors,
+            q.quote,
+            q.dt,
+            emptyList(),
+            q.repo
+        )
+        if(res.response.status != HttpStatusCode.OK) {
+            val contentRepr = if (res.request.content is TextContent) (res.request.content as TextContent).text
+                              else res.request.content.toString()
+            bot.answerOn(msg, "Что-то пошло не так: ${res.response.status} :;: ${res.request.url} :;: $contentRepr")
+            println(res.response.status) //TODO replace with normal log
+            println(res.request.url)
+            println(contentRepr)
+        } else {
+            bot.answerOn(msg, "Добавлено!")
+        }
+    }
+
+    handleQuoteCmd("deny") { msg, _ ->
+        bot.answerOn(msg, "Отменено.");
+    }
 }
 
 fun extractCount(a: List<String>): Pair<Int, List<String>> {
